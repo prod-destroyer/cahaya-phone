@@ -5,6 +5,15 @@
 const express = require('express');
 const router = express.Router();
 
+// API Base URL
+const API_BASE = 'https://cahaya-phone-production.up.railway.app';
+
+fetch(`${API_BASE}/api/form-submit`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(data)
+});
+
 // Controllers
 const formController = require('../controllers/formController');
 const webhookController = require('../controllers/webhookController');
