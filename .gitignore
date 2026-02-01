@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Environment variables (berisi password & secret key)
+.env
+backend/.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python (kalau ada)
+.venv/
+__pycache__/
