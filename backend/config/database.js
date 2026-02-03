@@ -3,7 +3,6 @@
 // ============================================
 
 const mysql = require('mysql2/promise');
-require('dotenv').config();
 
 // Parse DATABASE_URL if provided (Railway), otherwise use individual env vars
 let poolConfig;
@@ -27,8 +26,7 @@ if (process.env.MYSQL_URL) {
         connectionLimit: 10,
         queueLimit: 0,
         connectTimeout: 30000,
-        enableKeepAlive: true,
-        keepAliveInitialDelayMs: 0
+        enableKeepAlive: true
     };
     console.log('[DB Config] Connected to database:', poolConfig.database, 'at', poolConfig.host);
 } else if (process.env.DATABASE_URL) {
@@ -45,8 +43,7 @@ if (process.env.MYSQL_URL) {
         connectionLimit: 10,
         queueLimit: 0,
         connectTimeout: 30000,
-        enableKeepAlive: true,
-        keepAliveInitialDelayMs: 0
+        enableKeepAlive: true
     };
     console.log('[DB Config] Connected to database:', poolConfig.database, 'at', poolConfig.host);
 } else {
@@ -62,8 +59,7 @@ if (process.env.MYSQL_URL) {
         connectionLimit: 10,
         queueLimit: 0,
         connectTimeout: 30000,
-        enableKeepAlive: true,
-        keepAliveInitialDelayMs: 0
+        enableKeepAlive: true
     };
     console.log('[DB Config] Connected to database:', poolConfig.database, 'at', poolConfig.host);
 }
