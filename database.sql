@@ -1,15 +1,13 @@
 -- ============================================
--- DATABASE SCHEMA - CAHAYA PHONE CRM
+-- DATABASE SCHEMA - CAHAYA PHONE CRM (PostgreSQL)
 -- ============================================
-
-CREATE DATABASE IF NOT EXISTS cahaya_phone_crm;
-USE cahaya_phone_crm;
+-- Note: For Railway PostgreSQL, the database 'railway' is pre-created, just use it
 
 -- ============================================
 -- TABEL ADMIN
 -- ============================================
 CREATE TABLE IF NOT EXISTS admins (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     nama VARCHAR(100) NOT NULL,
@@ -21,11 +19,12 @@ CREATE TABLE IF NOT EXISTS admins (
 -- Username: admin
 -- Password: admin123
 INSERT INTO admins (username, password, nama, email) VALUES 
-('admin', '$2a$10$i4H32RnI3kzLIDrZSYYEVOMRKzUcAydkLpAm4X.2KvT5aZL.qeU9u', 'Administrator', 'admin@localhost');
+('admin', '$2a$10$i4H32RnI3kzLIDrZSYYEVOMRKzUcAydkLpAm4X.2KvT5aZL.qeU9u', 'Administrator', 'admin@localhost')
+ON CONFLICT (username) DO NOTHING;
 
 -- Table to store admin reset tokens
 CREATE TABLE IF NOT EXISTS admin_reset_tokens (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     admin_id INT NOT NULL,
     token VARCHAR(128) NOT NULL,
     expires_at DATETIME NOT NULL,
@@ -38,7 +37,7 @@ CREATE TABLE IF NOT EXISTS admin_reset_tokens (
 -- TABEL CUSTOMERS
 -- ============================================
 CREATE TABLE IF NOT EXISTS customers (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     nama_lengkap VARCHAR(100) NOT NULL,
     nama_sales VARCHAR(100),
     merk_unit VARCHAR(100),
@@ -53,25 +52,27 @@ CREATE TABLE IF NOT EXISTS customers (
     source VARCHAR(20) NOT NULL DEFAULT 'Unknown',
     status VARCHAR(20) DEFAULT 'New',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_whatsapp (whatsapp),
-    INDEX idx_source (source),
-    INDEX idx_status (status)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_whatsapp ON customers(whatsapp);
+CREATE INDEX IF NOT EXISTS idx_source ON customers(source);
+CREATE INDEX IF NOT EXISTS idx_status ON customers(status);
 
 -- ============================================
 -- TABEL MESSAGES (LOG CHAT WHATSAPP)
 -- ============================================
 CREATE TABLE IF NOT EXISTS messages (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     customer_id INT NOT NULL,
-    direction ENUM('in', 'out') NOT NULL,
+    direction VARCHAR(10) NOT NULL CHECK (direction IN ('in', 'out')),
     message TEXT NOT NULL,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
-    INDEX idx_customer (customer_id),
-    INDEX idx_direction (direction)
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS idx_customer ON messages(customer_id);
+CREATE INDEX IF NOT EXISTS idx_direction ON messages(direction);
 
 -- ============================================
 -- DATA CONTOH (OPTIONAL - UNTUK TESTING)
@@ -105,7 +106,9 @@ INSERT INTO messages (customer_id, direction, message) VALUES
 -- ============================================
 -- VIEW UNTUK STATISTIK
 -- ============================================
-CREATE OR REPLACE VIEW customer_stats AS
+DROP VIEW IF EXISTS customer_stats;
+
+CREATE VIEW customer_stats AS
 SELECT 
     COUNT(*) as total_customers,
     SUM(CASE WHEN source = 'Website' THEN 1 ELSE 0 END) as from_website,
@@ -115,7 +118,6 @@ SELECT
     SUM(CASE WHEN source LIKE '%Teman%' OR source LIKE '%Keluarga%' THEN 1 ELSE 0 END) as from_friends,
     SUM(CASE WHEN status = 'New' THEN 1 ELSE 0 END) as new_customers,
     SUM(CASE WHEN status = 'Old' THEN 1 ELSE 0 END) as old_customers,
-    SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today_customers,
-    -- Exclude known sources AND Teman/Keluarga so 'Lainnya' only counts truly other values
+    SUM(CASE WHEN DATE(created_at) = CURRENT_DATE THEN 1 ELSE 0 END) as today_customers,
     SUM(CASE WHEN source NOT IN ('Website','Instagram','Facebook','TikTok','Teman/Keluarga') THEN 1 ELSE 0 END) as from_others
 FROM customers;
