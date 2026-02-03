@@ -154,9 +154,27 @@ if (process.env.NODE_ENV === 'development') {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve frontend static files
-app.use(express.static(path.join(__dirname, '..', 'customer')));
-app.use('/admin', express.static(path.join(__dirname, '..', 'admin')));
+// ============================================
+// SERVE FRONTEND BASED ON APP_TYPE
+// ============================================
+const APP_TYPE = process.env.APP_TYPE || 'both';
+
+console.log(`[Frontend] APP_TYPE: ${APP_TYPE}`);
+
+if (APP_TYPE === 'admin') {
+    // Admin-only deployment
+    console.log('[Frontend] Serving ADMIN files only');
+    app.use(express.static(path.join(__dirname, '..', 'admin')));
+} else if (APP_TYPE === 'customer') {
+    // Customer-only deployment
+    console.log('[Frontend] Serving CUSTOMER files only');
+    app.use(express.static(path.join(__dirname, '..', 'customer')));
+} else {
+    // Both (default - original behavior)
+    console.log('[Frontend] Serving BOTH customer and admin files');
+    app.use(express.static(path.join(__dirname, '..', 'customer')));
+    app.use('/admin', express.static(path.join(__dirname, '..', 'admin')));
+}
 
 // Request logger
 app.use((req, res, next) => {
