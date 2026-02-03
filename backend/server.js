@@ -127,7 +127,7 @@ const PORT = process.env.PORT || 5000;
 // CORS
 const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-    : ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500','cahayaphonecrm.up.railway.app','cahaya-phone-production-9701.up.railway.app'];
+    : ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500','https://cahayaphonecrm.up.railway.app','https://cahaya-phone-production-9701.up.railway.app'];
 
 // CORS handling
 if (process.env.NODE_ENV === 'development') {
