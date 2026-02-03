@@ -207,9 +207,10 @@ const server = app.listen(PORT, () => {
     console.log('============================================');
     console.log('🚀 CAHAYA PHONE CRM - BACKEND SERVER');
     console.log('============================================');
-    console.log(`📡 Server running on: http://localhost:${PORT}`);
+    console.log(`📡 Server running on port: ${PORT}`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-    console.log(`📊 Database: ${process.env.DB_NAME}`);
+    console.log(`📊 Database configured from:`, process.env.MYSQL_URL ? 'MYSQL_URL' : process.env.DATABASE_URL ? 'DATABASE_URL' : 'Individual DB_* variables');
+    console.log(`🔌 CORS Origins:`, process.env.ALLOWED_ORIGINS || 'All origins (dev mode)');
     console.log('============================================');
     console.log('📋 Available endpoints:');
     console.log('   POST /api/form-submit');
