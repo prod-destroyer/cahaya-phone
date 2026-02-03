@@ -125,30 +125,41 @@ const PORT = process.env.PORT || 5000;
 // ============================================
 
 // CORS
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-    : ['http://localhost:3000','https://cahayaphonecrm.up.railway.app','https://cahaya-phone-production-9701.up.railway.app'];
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(o => o !== "");
 
-// CORS handling
-if (process.env.NODE_ENV === 'development') {
-    // Development: allow any origin for convenience (works with Live Server / file:// / different hostnames)
-    app.use(cors({
-        origin: true,
-        credentials: true
-    }));
-} else {
-    // Production: restrict to configured origins
-    app.use(cors({
-        origin: function (origin, callback) {
-            console.log('[CORS] incoming origin:', origin);
-            if ((!origin || origin === 'null')) return callback(null, true);
-            if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
-            console.warn('[CORS] blocked origin:', origin);
-            return callback(new Error('Not allowed by CORS'));
-        },
-        credentials: true
-    }));
-}
+// Add your fallbacks if the env variable is empty
+const finalAllowedList = allowedOrigins.length > 0 
+    ? allowedOrigins 
+    : ['http://localhost:3000', 'https://cahayaphonecrm.up.railway.app'];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // 1. Allow non-browser requests (Postman, curl, etc.)
+        if (!origin) return callback(null, true);
+
+        // 2. Exact match check
+        if (finalAllowedList.indexOf(origin) !== -1) {
+            return callback(null, true);
+        }
+
+        // 3. Robust check (removes trailing slashes for comparison)
+        const sanitizedOrigin = origin.replace(/\/$/, "");
+        const isMatch = finalAllowedList.some(allowed => allowed.replace(/\/$/, "") === sanitizedOrigin);
+
+        if (isMatch) {
+            callback(null, true);
+        } else {
+            console.error(`[CORS REJECTED] Origin: "${origin}"`);
+            console.log(`[CORS ALLOWED LIST]`, finalAllowedList);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    optionsSuccessStatus: 200 // Essential for older browsers/legacy support
+}));
 
 // Body parser
 app.use(bodyParser.json());
